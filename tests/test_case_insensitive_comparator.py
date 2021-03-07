@@ -46,10 +46,14 @@ class TestCaseInsensitiveComparator(object):
             session.query(User)
             .filter(User.email.notin_([u'email@example.com', u'a']))
         )
-        assert (
-            'user.email NOT IN (lower(?), lower(?))'
-            in str(query)
-        )
+        try:
+            assert ( 'user.email NOT IN (lower(?), lower(?))'
+                in str(query)
+            )
+        except AssertionError:  # SQLAlchemy 1.4
+            assert ( 'user.email NOT IN ([POSTCOMPILE_email_1])'
+                in str(query)
+            )
 
     def test_does_not_apply_lower_to_types_that_are_already_lowercased(
         self,
